@@ -1,6 +1,6 @@
 Before you submit your PR, make sure you check each of the following:
 
-1. [ ] I have read the [Contributing Guidelines](./CONTRIBUTING.md) and signed the [Contributor License Agreement](./CLA.md).
+1. [ ] I have read the [Contributing Guidelines](../CONTRIBUTING.md) and signed the [Contributor License Agreement](../CLA.md).
 2. [ ] My code is clean and ready-to-PR, including being free of lint errors and dead code
 3. [ ] I have **tested** my change / code and am confident that it works
 4. [ ] I have filled in the template below completely and accurately
