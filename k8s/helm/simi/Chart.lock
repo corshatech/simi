@@ -1,0 +1,9 @@
+dependencies:
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.2.2
+- name: influxdb
+  repository: https://charts.bitnami.com/bitnami
+  version: 5.4.13
+digest: sha256:5a311d62271059b9fa7a552bd41e2df4aed731d37a628f953e63ca5e0dee9f7b
+generated: "2025-02-04T15:33:15.514091-05:00"

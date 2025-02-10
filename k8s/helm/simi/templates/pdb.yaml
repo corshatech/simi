@@ -1,0 +1,15 @@
+# Copyright Corsha Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: simi-pdb
+  labels:
+    chart: {{.Chart.Name}}-{{.Chart.Version | replace "+" "_"}}
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/interruptible: "disabled"
+      chart: {{.Chart.Name}}-{{.Chart.Version | replace "+" "_"}}

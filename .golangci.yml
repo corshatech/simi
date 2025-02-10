@@ -1,0 +1,44 @@
+run:
+  timeout: 5m
+
+linters-settings:
+  govet:
+    enable:
+      - fieldalignment
+    shadow: true
+  maligned:
+    suggest-new: true
+  goconst:
+    min-len: 2
+    min-occurrences: 3
+  misspell:
+    locale: US
+  gci:
+    # Section configuration to compare against.
+    # Section names are case-insensitive and may contain parameters in ().
+    # The default order of sections is `standard > default > custom > blank > dot`,
+    # If `custom-order` is `true`, it follows the order of `sections` option.
+    # Default: ["standard", "default"]
+    sections:
+      - standard                       # Standard section: captures all standard packages.
+      - default                        # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/corshatech)  # Custom section: groups all imports with the specified Prefix.
+      - blank                          # Blank section: contains all blank imports. This section is not present unless explicitly enabled.
+      - dot                            # Dot section: contains all dot imports. This section is not present unless explicitly enabled.
+
+linters:
+  enable:
+    - govet
+    - misspell
+    - bodyclose
+    - dogsled
+    - dupl
+    - goconst
+    - gochecknoglobals
+    - gocritic
+    - gocyclo
+    - gosec
+    - prealloc
+    - copyloopvar
+    - unconvert
+    - gci

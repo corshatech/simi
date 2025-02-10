@@ -1,0 +1,98 @@
+# Copyright Corsha Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Default values for simi.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+operationType: ping
+
+# True if bench-consumer and rabbitmq should be deployed
+isBenchmark: true
+
+# True if a simi failure means the job should fail
+shouldFailOnError: false
+
+numWorkers: 1
+
+operationPeriod: 5s
+
+targetNamespace: staging
+
+uniqueId: default
+
+image:
+  repository: ""
+  tag: ""
+  consumer:
+    repository: ""
+  waiter:
+    repository: redhat/ubi8-minimal
+    tag: "8.10"
+  publisher:
+    repository: bitnami/kubectl
+    tag: 1.30.6
+
+enableTracing: true
+
+resources:
+  consumer:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  simi:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+rabbitmq:
+  persistence:
+    enabled: false
+  fullnameOverride: rabbitmq
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  service:
+    ports:
+      manager: 15672
+  auth:
+    password: devRabbit2
+    username: rabbit
+influxdb:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+  fullnameOverride: influx-simi
+  image:
+    registry: bitnami
+    repository: influxdb
+    tag: 2.7.8-debian-12-r0
+  auth:
+    admin:
+      bucket: stats
+      org: simi
+      password: mysecretpassword
+      token: mysecrettoken
+  influxdb:
+    service:
+      ports:
+        http: 8086
+    resources:
+      limits:
+        cpu: "1"
+        memory: 2Gi
+      requests:
+        cpu: "1"
+        memory: 2Gi
+  persistence:
+    enabled: false
+    
+
+operationConfig: 
+  org: org0
+  chaincodeID: "mycc"
+  logLevel: INFO

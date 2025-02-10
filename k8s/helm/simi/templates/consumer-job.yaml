@@ -1,0 +1,64 @@
+# Copyright Corsha Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+{{- if .Values.isBenchmark }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: consumer
+  labels:
+    app.kubernetes.io/name: consumer
+    app.kubernetes.io/interruptible: "disabled"
+    chart: {{.Chart.Name}}-{{.Chart.Version | replace "+" "_"}}
+spec:
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: simi
+        app.kubernetes.io/interruptible: "disabled"
+        chart: {{.Chart.Name}}-{{.Chart.Version | replace "+" "_"}}
+    spec:
+        restartPolicy: Never
+        serviceAccountName: simi
+        volumes:
+          - name: ipc
+            emptyDir: {}
+          - name: consumer-config
+            secret:
+              secretName: consumer-config
+        initContainers:
+          - name: queue-waiter
+            image: "{{ .Values.image.waiter.repository }}:{{ .Values.image.waiter.tag }}"
+            env:
+              - name: USERNAME
+                value: {{ .Values.rabbitmq.auth.username }}
+              - name: PASSWORD
+                value: {{ .Values.rabbitmq.auth.password }}
+            command:
+              - /bin/sh
+              - -c
+              - |
+                curl --retry 10 --retry-connrefused --fail  -u $USERNAME:$PASSWORD http://{{ .Values.rabbitmq.fullnameOverride }}:{{ .Values.rabbitmq.service.ports.manager }}/api/health/checks/virtual-hosts
+        containers:
+          - name: consumer
+            image: "{{ .Values.image.consumer.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: ipc
+                mountPath: /ipc
+              - name: consumer-config
+                mountPath: /bench-consumer.yaml
+                subPath: bench-consumer.yaml
+            command:
+            - /bin/sh
+            - -c
+            - |
+              /bench-consumer
+              ret_val=$?
+              echo "CONSUMER FINISHED WITH EXIT CODE $ret_val"
+            resources:
+{{ toYaml .Values.resources.consumer | indent 15 }}
+{{- end }}

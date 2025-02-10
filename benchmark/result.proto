@@ -1,0 +1,25 @@
+/*
+Copyright Corsha Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+package benchmark;
+option go_package = "github.com/corshatech/simi/benchmark";
+
+// A benchmark execution result
+message Result {
+  // Time taken since beginning benchmarking
+  int64 elapsed = 1;
+  // Error text, empty string if no error
+  string err = 2;
+  // Duration in nanoseconds of fastest result
+  int64 min = 4;
+  // Duration in nanoseconds of slowest result
+  int64 max = 5;
+  // Sum of latencies of results. Divide by count to get average latency.
+  int64 avg_total = 6;
+  // Start time of this device
+  int64 start = 7;
+};

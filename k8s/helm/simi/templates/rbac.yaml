@@ -1,0 +1,44 @@
+# Copyright Corsha Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: simi-role
+  labels:
+    app: simi
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+rules:
+- apiGroups:
+  - ""
+  - "apps"
+  resources:
+  - configmaps
+  - deployments
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: simi-binding
+  labels:
+    app: simi
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+subjects:
+- kind: ServiceAccount
+  name: simi
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: simi-role
+  apiGroup: rbac.authorization.k8s.io

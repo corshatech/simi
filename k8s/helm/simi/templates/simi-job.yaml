@@ -1,0 +1,89 @@
+# Copyright Corsha Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: simi
+  labels:
+    app.kubernetes.io/name: simi
+    app.kubernetes.io/interruptible: "disabled"
+    chart: {{.Chart.Name}}-{{.Chart.Version | replace "+" "_"}}
+spec:
+  {{- if .Values.shouldFailOnError }}
+  backoffLimit: 0
+  {{- end }}
+  completions: {{ .Values.numWorkers }}
+  parallelism: {{ .Values.numWorkers }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: simi
+        app.kubernetes.io/interruptible: "disabled"
+        chart: {{.Chart.Name}}-{{.Chart.Version | replace "+" "_"}}
+    spec:
+        {{- if .Values.shouldFailOnError }}
+        restartPolicy: Never
+        {{- else }}
+        restartPolicy: OnFailure
+        {{- end }}
+        serviceAccountName: simi
+        volumes:
+          - name: simi-config
+            secret:
+              secretName: simi-config
+          - name: fabric-config
+            secret:
+              secretName: fabric-config
+        {{- if .Values.isBenchmark }}
+        initContainers:
+          - name: rabbitmq-waiter
+            image: "{{ .Values.image.publisher.repository }}:{{ .Values.image.publisher.tag }}"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                kubectl -n {{ .Release.Namespace }} rollout status --watch --timeout=600s statefulset/rabbitmq
+          - name: influxdb-waiter
+            image: "{{ .Values.image.publisher.repository }}:{{ .Values.image.publisher.tag }}"
+            command:
+              - /bin/sh
+              - -c
+              - |
+                kubectl -n {{ .Release.Namespace }} rollout status --watch --timeout=600s deployment/influx-simi
+        {{- end }}
+        containers:
+          - name: simi
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: Always
+            env:
+            {{- if .Values.enableTracing }}
+              - name: JAEGER_SAMPLER_TYPE
+                value: const
+              - name: JAEGER_SAMPLER_PARAM
+                value: "1"
+              - name: JAEGER_AGENT_HOST
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.hostIP
+            {{- end }}
+              - name: SIMI_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: INFLUX_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.influxdb.fullnameOverride }}
+                    key: admin-user-token
+            volumeMounts:
+              - name: simi-config
+                mountPath: /simi.yaml
+                subPath: simi.yaml
+              - name: fabric-config
+                mountPath: /fabric-config.yaml
+                subPath: fabric-config.yaml
+            command: ["/bin/sh"]
+            args: ["-c", "./entrypoint.sh -mode={{ .Values.operationType}}"]
+            resources:
+{{ toYaml .Values.resources.simi | indent 15 }}

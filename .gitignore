@@ -1,0 +1,18 @@
+# App files
+/simi
+k8s/helm/simi/charts
+results.json
+simi.yaml
+*.dec
+out/
+/coverage.out
+
+# Ignore executable
+/bin/simi
+cmd/simi
+benchmark/bench-consumer
+
+# IDE configs
+.DS_Store
+.vscode
+.idea/

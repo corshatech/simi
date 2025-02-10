@@ -1,0 +1,14 @@
+# Copyright Corsha Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+helmDefaults:
+  # defaults for verify, wait, force, timeout and recreatePods under releases[]
+  wait: true
+  timeout: 600
+  devel: true
+
+releases:
+  - name: simi-{{ requiredEnv "SIMI_NAMESPACE" }}
+    namespace: {{ requiredEnv "SIMI_NAMESPACE" }}
+    chart: {{ env "SIMI_HELM_CHART" | default "../../../helm/simi" }}
+    version: {{ env "SIMI_VERSION" | default "1.0" | quote }}

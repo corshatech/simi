@@ -1,0 +1,5 @@
+# Ignore everything, we only copy in the binary
+**
+
+!simi
+!benchmark/bench-consumer
