@@ -101,8 +101,8 @@ kubectl label ns "$SIMI_NAMESPACE" com.corsha.ecm.disruptible=false --overwrite
 sleep 5
 
 get_statuses() {
-  simi_status=$(kubectl -n "$SIMI_NAMESPACE" get jobs -o go-template --template='{{range .items}}{{if and ( eq .metadata.name "simi") ( .status.conditions) }}{{(index .status.conditions 0).type }}{{end}}{{ end }}')
-  consumer_status=$(kubectl -n "$SIMI_NAMESPACE" get jobs -o go-template --template='{{range .items}}{{if and (eq .metadata.name "consumer") ( .status.conditions) }}{{(index .status.conditions 0).type }}{{end}}{{ end }}')
+  simi_status=$(kubectl -n "$SIMI_NAMESPACE" get jobs -o go-template --template='{{range .items}}{{if eq .metadata.name "simi"}}{{range .status.conditions}}{{if or (eq .type "Complete") (eq .type "Failed")}}{{.type}}{{"\n"}}{{end}}{{end}}{{end}}{{end}}')
+  consumer_status=$(kubectl -n "$SIMI_NAMESPACE" get jobs -o go-template --template='{{range .items}}{{if eq .metadata.name "consumer"}}{{range .status.conditions}}{{if or (eq .type "Complete") (eq .type "Failed")}}{{.type}}{{"\n"}}{{end}}{{end}}{{end}}{{end}}')
   echo -e "status:\n  consumer: $consumer_status\n  simi: $simi_status\n"
 }
 
