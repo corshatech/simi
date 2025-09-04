@@ -1,288 +1,318 @@
-# This is a sample sdk config and must be replaced to invoke chaincode successfully.
-name: "corsha-fabric-network-ns"
-
-#
-# Any properties with an "x-" prefix will be treated as application-specific, exactly like how naming
-# in HTTP headers or swagger properties work. The SDK will simply ignore these fields and leave
-# them for the applications to process. This is a mechanism for different components of an application
-# to exchange information that are not part of the standard schema described below. In particular,
-# the "x-type" property with the "hlfv1" value example below is used by Hyperledger Composer to
-# determine the type of Fabric networks (v0.6 vs. v1.0) it needs to work with.
-#
-x-type: "hlfv1"
-x-loggingLevel: info
-
-#
-# Describe what the target network is/does.
-#
-description: "Corsha Fabric Network, prefix: ns"
-
-#
-# Schema version of the content. Used by the SDK to apply the corresponding parsing rules.
-#
-version: 1.0.0
-
-#
-# The client section used by GO SDK.
-#
+channels:
+  firstchannel:
+    orderers:
+    - orderer1-org1
+    - orderer2-org1
+    - orderer3-org1
+    peers:
+      peer1-org1:
+        chaincodequery: true
+        endorsingpeer: true
+        ledgerquery: true
 client:
-  # Which organization does this application instance belong to? The value must be the name of an org
-  # defined under "organizations"
-  organization: testorg
-
+  bccsp:
+    security:
+      default:
+        provider: SW
+      enabled: true
+      ephemeral: false
+      hashalgorithm: SHA2
+      level: 256
+      softverify: true
+  eventservice:
+    timeout:
+      connection: 120s
+      registrationresponse: 120s
   logging:
     level: info
-
-  # Global configuration for peer, event service and orderer timeouts
-  peer:
-    timeout:
-      connection: 120s
-      queryResponse: 120s
-      executeTxResponse: 120s
-  eventService:
-    timeout:
-      connection: 120s
-      registrationResponse: 120s
   orderer:
     timeout:
       connection: 120s
       response: 120s
-
-  # Some SDKs support pluggable KV stores, the properties under "credentialStore"
-  # are implementation specific
-  credentialStore:
-    # [Optional]. Used by user store. Not needed if all credentials are embedded in configuration
-    # and enrollments are performed elswhere.
-    path: "/tmp/state-store"
-
-    # [Optional]. Specific to the CryptoSuite implementation used by GO SDK. Software-based implementations
-    # requiring a key store. PKCS#11 based implementations does not.
-    cryptoStore:
-      # Specific to the underlying KeyValueStore that backs the crypto key store.
-      path: testdata/msp
-
-  # BCCSP config for the client. Used by GO SDK.
-  BCCSP:
-    security:
-      enabled: true
-      default:
-        provider: "SW"
-      hashAlgorithm: "SHA2"
-      softVerify: true
-      ephemeral: false
-      level: 256
-  tlsCerts:
-    # Use system certificate pool when connecting to peers, orderers (for negotiating TLS)
-    systemCertPool: false
-
-#
-# [Optional]. But most apps would have this section so that channel objects can be constructed
-# based on the content below. If an app is creating channels, then it likely will not need this
-# section.
-#
-# NOTE: goal is to move away from clunky config file driven sdk use
-# so however sdk example uses this section to build objs is what we want to do programatically
-channels:
-  # name of the channel
-  firstchannel: # NOTE: this would need to be a var once we start having more than one channel
-    # Required. list of orderers designated by the application to use for transactions on this
-    # channel. This list can be a result of access control ("testorg" can only access "ordererA"), or
-    # operational decisions to share loads from applications among the orderers.  The values must
-    # be "names" of orgs defined under "organizations/peers"
-    orderers:
-      - orderer1-testorg-ns
-      - orderer2-testorg-ns
-      - orderer3-testorg-ns
-    # Required. list of peers from participating orgs
-    peers:
-      peer1-testorg-ns:
-        # [Optional]. will this peer be sent transaction proposals for endorsement? The peer must
-        # have the chaincode installed. The app can also use this property to decide which peers
-        # to send the chaincode install request. Default: true
-        endorsingPeer: true
-
-        # [Optional]. will this peer be sent query proposals? The peer must have the chaincode
-        # installed. The app can also use this property to decide which peers to send the
-        # chaincode install request. Default: true
-        chaincodeQuery: true
-
-        # [Optional]. will this peer be sent query proposals that do not require chaincodes, like
-        # queryBlock(), queryTransaction(), etc. Default: true
-        ledgerQuery: true
-
-        # [Optional]. will this peer be the target of the SDK's listener registration? All peers can
-        # produce events but the app typically only needs to connect to one to listen to events.
-        # Default: true
-        # eventSource: {% if loop.first %}true{% else %}false{% endif %} # NOTE: only true for first peer
-      peer2-testorg-ns:
-        # [Optional]. will this peer be sent transaction proposals for endorsement? The peer must
-        # have the chaincode installed. The app can also use this property to decide which peers
-        # to send the chaincode install request. Default: true
-        endorsingPeer: true
-
-        # [Optional]. will this peer be sent query proposals? The peer must have the chaincode
-        # installed. The app can also use this property to decide which peers to send the
-        # chaincode install request. Default: true
-        chaincodeQuery: true
-
-        # [Optional]. will this peer be sent query proposals that do not require chaincodes, like
-        # queryBlock(), queryTransaction(), etc. Default: true
-        ledgerQuery: true
-
-        # [Optional]. will this peer be the target of the SDK's listener registration? All peers can
-        # produce events but the app typically only needs to connect to one to listen to events.
-        # Default: true
-        # eventSource: {% if loop.first %}true{% else %}false{% endif %} # NOTE: only true for first peer
-      peer3-testorg-ns:
-        # [Optional]. will this peer be sent transaction proposals for endorsement? The peer must
-        # have the chaincode installed. The app can also use this property to decide which peers
-        # to send the chaincode install request. Default: true
-        endorsingPeer: true
-
-        # [Optional]. will this peer be sent query proposals? The peer must have the chaincode
-        # installed. The app can also use this property to decide which peers to send the
-        # chaincode install request. Default: true
-        chaincodeQuery: true
-
-        # [Optional]. will this peer be sent query proposals that do not require chaincodes, like
-        # queryBlock(), queryTransaction(), etc. Default: true
-        ledgerQuery: true
-
-        # [Optional]. will this peer be the target of the SDK's listener registration? All peers can
-        # produce events but the app typically only needs to connect to one to listen to events.
-        # Default: true
-        # eventSource: {% if loop.first %}true{% else %}false{% endif %} # NOTE: only true for first peer
-
-#
-# list of participating organizations in this network
-#
-organizations:
-  testorg:
-    mspid: testorg
-
-    # Needed to load users crypto keys and certs for this org (absolute path or relative to global crypto path, DEV mode)
-    cryptoPath: testdata/msp
-
-    users:
-      user-testorg:
-        cert:
-          path: testdata/msp/signcerts/cert.pem
-        key:
-          path: testdata/msp/keystore/6cf244ce49595b34f8f36991e1924864580788f54ef227cce631199bc0fc5de9_sk
-
-    peers:
-      - peer1-testorg-ns
-      - peer2-testorg-ns
-      - peer3-testorg-ns
-
-    certificateAuthorities:
-      - ica-testorg-ns
-
-#
-# List of orderers to send transaction and channel create/update requests to. For the time
-# being only one orderer is needed. If more than one is defined, which one get used by the
-# SDK is implementation specific. Consult each SDK's documentation for its handling of orderers.
-#
+  organization: org1
+  peer:
+    timeout:
+      connection: 120s
+      executetxresponse: 120s
+      queryresponse: 120s
+  tlscerts:
+    client:
+      cert:
+        pem: |
+          -----BEGIN CERTIFICATE-----
+          MIICJDCCAcmgAwIBAgIRAKgoq44SkiTQjhUG7aRCl8owCgYIKoZIzj0EAwIwgZox
+          CzAJBgNVBAYTAlVTMQswCQYDVQQIEwJWQTEPMA0GA1UEBxMGVmllbm5hMSkwJwYD
+          VQQJEyA4NjE4IFdlc3R3b29kIENlbnRlciBEciwgU1RFIDMxMDEOMAwGA1UEERMF
+          MjIxODIxFDASBgNVBAoTC0NvcnNoYSwgSW5jMQ0wCwYDVQQLEwRvcmcxMQ0wCwYD
+          VQQDEwRpY2EwMB4XDTI1MDgyNTE0MDMzNloXDTI1MTEyMzE0MDMzNlowSDEPMA0G
+          A1UECxMGY2xpZW50MTUwMwYDVQQDEyxBdVYwZVcxemdxTzVuYWhmbGpqcU1LWlVR
+          RGJDUWNuV042SnY1a29aNHd4NzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGxO
+          /p70ovC27bvMetDugEkdq2Wr0Vz4o9lmA7z4EVCJi0ArVNov0NanJ3YvA3WyExSo
+          bI4n+HwdxbPxYN6hKsWjQTA/MA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAA
+          MB8GA1UdIwQYMBaAFFAwbPwFhFCdM7BVpLwxAN7wzmRrMAoGCCqGSM49BAMCA0kA
+          MEYCIQDNU5JspX0E862cEluytfDJCQqUd6A77t3a69+9kcdEDgIhAOn3F8iGTH2X
+          RCw8ms4Sjoe8FOFfOsnPJe5fI1sF1YRG
+          -----END CERTIFICATE-----
+          -----BEGIN CERTIFICATE-----
+          MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+          BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+          b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+          Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+          ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+          BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+          Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+          c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+          PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+          OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+          BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+          vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+          zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+          ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+          -----END CERTIFICATE-----
+      key:
+        pem: |
+          -----BEGIN EC PRIVATE KEY-----
+          MHcCAQEEIHVvXb1pwO778A6M6m49WQoVgNiWlS4FlDI24G6naH8poAoGCCqGSM49
+          AwEHoUQDQgAEbE7+nvSi8Lbtu8x60O6ASR2rZavRXPij2WYDvPgRUImLQCtU2i/Q
+          1qcndi8DdbITFKhsjif4fB3Fs/Fg3qEqxQ==
+          -----END EC PRIVATE KEY-----
+    systemcertpool: false
+description: 'Corsha Fabric Network, prefix: cal-dln'
+name: corsha-fabric-network
 orderers:
-  orderer1-testorg-ns:
-    url: grpcs://orderer1-testorg-ns.example.com:443
-
-    # these are standard properties defined by the gRPC library
-    # they will be passed in as-is to gRPC client constructor
-    grpcOptions:
+  orderer1-org1:
+    grpcoptions:
       allow-insecure: false
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-  orderer2-testorg-ns:
-    url: grpcs://orderer2-testorg-ns.example.com:443
-
-    # these are standard properties defined by the gRPC library
-    # they will be passed in as-is to gRPC client constructor
-    grpcOptions:
+    tlscacerts:
+      path: ""
+      pem: |
+        -----BEGIN CERTIFICATE-----
+        MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+        BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+        b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+        Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+        ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+        BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+        Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+        c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+        PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+        OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+        BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+        vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+        zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+        ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+        -----END CERTIFICATE-----
+    url: grpcs://orderer1-org1.cal-dln.svc.cluster.local:7050
+  orderer2-org1:
+    grpcoptions:
       allow-insecure: false
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-  orderer3-testorg-ns:
-    url: grpcs://orderer3-testorg-ns.example.com:443
-
-    # these are standard properties defined by the gRPC library
-    # they will be passed in as-is to gRPC client constructor
-    grpcOptions:
+    tlscacerts:
+      path: ""
+      pem: |
+        -----BEGIN CERTIFICATE-----
+        MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+        BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+        b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+        Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+        ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+        BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+        Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+        c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+        PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+        OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+        BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+        vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+        zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+        ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+        -----END CERTIFICATE-----
+    url: grpcs://orderer2-org1.cal-dln.svc.cluster.local:7050
+  orderer3-org1:
+    grpcoptions:
       allow-insecure: false
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-
-#
-# List of peers to send various requests to, including endorsement, query
-# and event listener registration.
-#
+    tlscacerts:
+      path: ""
+      pem: |
+        -----BEGIN CERTIFICATE-----
+        MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+        BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+        b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+        Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+        ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+        BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+        Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+        c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+        PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+        OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+        BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+        vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+        zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+        ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+        -----END CERTIFICATE-----
+    url: grpcs://orderer3-org1.cal-dln.svc.cluster.local:7050
+organizations:
+  org0:
+    cryptopath: msp
+    mspid: org0
+    peers:
+    - peer1-org0
+    users:
+      auv0ew1zgqo5nahfljjqmkzuqdbcqcnwn6jv5koz4wx7:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICJDCCAcmgAwIBAgIRAKgoq44SkiTQjhUG7aRCl8owCgYIKoZIzj0EAwIwgZox
+            CzAJBgNVBAYTAlVTMQswCQYDVQQIEwJWQTEPMA0GA1UEBxMGVmllbm5hMSkwJwYD
+            VQQJEyA4NjE4IFdlc3R3b29kIENlbnRlciBEciwgU1RFIDMxMDEOMAwGA1UEERMF
+            MjIxODIxFDASBgNVBAoTC0NvcnNoYSwgSW5jMQ0wCwYDVQQLEwRvcmcxMQ0wCwYD
+            VQQDEwRpY2EwMB4XDTI1MDgyNTE0MDMzNloXDTI1MTEyMzE0MDMzNlowSDEPMA0G
+            A1UECxMGY2xpZW50MTUwMwYDVQQDEyxBdVYwZVcxemdxTzVuYWhmbGpqcU1LWlVR
+            RGJDUWNuV042SnY1a29aNHd4NzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGxO
+            /p70ovC27bvMetDugEkdq2Wr0Vz4o9lmA7z4EVCJi0ArVNov0NanJ3YvA3WyExSo
+            bI4n+HwdxbPxYN6hKsWjQTA/MA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAA
+            MB8GA1UdIwQYMBaAFFAwbPwFhFCdM7BVpLwxAN7wzmRrMAoGCCqGSM49BAMCA0kA
+            MEYCIQDNU5JspX0E862cEluytfDJCQqUd6A77t3a69+9kcdEDgIhAOn3F8iGTH2X
+            RCw8ms4Sjoe8FOFfOsnPJe5fI1sF1YRG
+            -----END CERTIFICATE-----
+            -----BEGIN CERTIFICATE-----
+            MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+            BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+            b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+            Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+            ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+            BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+            Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+            c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+            PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+            OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+            BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+            vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+            zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+            ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+            -----END CERTIFICATE-----
+        key:
+          pem: |
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIHVvXb1pwO778A6M6m49WQoVgNiWlS4FlDI24G6naH8poAoGCCqGSM49
+            AwEHoUQDQgAEbE7+nvSi8Lbtu8x60O6ASR2rZavRXPij2WYDvPgRUImLQCtU2i/Q
+            1qcndi8DdbITFKhsjif4fB3Fs/Fg3qEqxQ==
+            -----END EC PRIVATE KEY-----
+  org1:
+    cryptopath: msp
+    mspid: org1
+    peers:
+    - peer1-org1
+    users:
+      auv0ew1zgqo5nahfljjqmkzuqdbcqcnwn6jv5koz4wx7:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICJDCCAcmgAwIBAgIRAKgoq44SkiTQjhUG7aRCl8owCgYIKoZIzj0EAwIwgZox
+            CzAJBgNVBAYTAlVTMQswCQYDVQQIEwJWQTEPMA0GA1UEBxMGVmllbm5hMSkwJwYD
+            VQQJEyA4NjE4IFdlc3R3b29kIENlbnRlciBEciwgU1RFIDMxMDEOMAwGA1UEERMF
+            MjIxODIxFDASBgNVBAoTC0NvcnNoYSwgSW5jMQ0wCwYDVQQLEwRvcmcxMQ0wCwYD
+            VQQDEwRpY2EwMB4XDTI1MDgyNTE0MDMzNloXDTI1MTEyMzE0MDMzNlowSDEPMA0G
+            A1UECxMGY2xpZW50MTUwMwYDVQQDEyxBdVYwZVcxemdxTzVuYWhmbGpqcU1LWlVR
+            RGJDUWNuV042SnY1a29aNHd4NzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGxO
+            /p70ovC27bvMetDugEkdq2Wr0Vz4o9lmA7z4EVCJi0ArVNov0NanJ3YvA3WyExSo
+            bI4n+HwdxbPxYN6hKsWjQTA/MA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAA
+            MB8GA1UdIwQYMBaAFFAwbPwFhFCdM7BVpLwxAN7wzmRrMAoGCCqGSM49BAMCA0kA
+            MEYCIQDNU5JspX0E862cEluytfDJCQqUd6A77t3a69+9kcdEDgIhAOn3F8iGTH2X
+            RCw8ms4Sjoe8FOFfOsnPJe5fI1sF1YRG
+            -----END CERTIFICATE-----
+            -----BEGIN CERTIFICATE-----
+            MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+            BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+            b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+            Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+            ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+            BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+            Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+            c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+            PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+            OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+            BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+            vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+            zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+            ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+            -----END CERTIFICATE-----
+        key:
+          pem: |
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIHVvXb1pwO778A6M6m49WQoVgNiWlS4FlDI24G6naH8poAoGCCqGSM49
+            AwEHoUQDQgAEbE7+nvSi8Lbtu8x60O6ASR2rZavRXPij2WYDvPgRUImLQCtU2i/Q
+            1qcndi8DdbITFKhsjif4fB3Fs/Fg3qEqxQ==
+            -----END EC PRIVATE KEY-----
+  org2:
+    cryptopath: msp
+    mspid: org2
+    peers:
+    - peer1-org2
+    users:
+      auv0ew1zgqo5nahfljjqmkzuqdbcqcnwn6jv5koz4wx7:
+        cert:
+          pem: |
+            -----BEGIN CERTIFICATE-----
+            MIICJDCCAcmgAwIBAgIRAKgoq44SkiTQjhUG7aRCl8owCgYIKoZIzj0EAwIwgZox
+            CzAJBgNVBAYTAlVTMQswCQYDVQQIEwJWQTEPMA0GA1UEBxMGVmllbm5hMSkwJwYD
+            VQQJEyA4NjE4IFdlc3R3b29kIENlbnRlciBEciwgU1RFIDMxMDEOMAwGA1UEERMF
+            MjIxODIxFDASBgNVBAoTC0NvcnNoYSwgSW5jMQ0wCwYDVQQLEwRvcmcxMQ0wCwYD
+            VQQDEwRpY2EwMB4XDTI1MDgyNTE0MDMzNloXDTI1MTEyMzE0MDMzNlowSDEPMA0G
+            A1UECxMGY2xpZW50MTUwMwYDVQQDEyxBdVYwZVcxemdxTzVuYWhmbGpqcU1LWlVR
+            RGJDUWNuV042SnY1a29aNHd4NzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGxO
+            /p70ovC27bvMetDugEkdq2Wr0Vz4o9lmA7z4EVCJi0ArVNov0NanJ3YvA3WyExSo
+            bI4n+HwdxbPxYN6hKsWjQTA/MA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAA
+            MB8GA1UdIwQYMBaAFFAwbPwFhFCdM7BVpLwxAN7wzmRrMAoGCCqGSM49BAMCA0kA
+            MEYCIQDNU5JspX0E862cEluytfDJCQqUd6A77t3a69+9kcdEDgIhAOn3F8iGTH2X
+            RCw8ms4Sjoe8FOFfOsnPJe5fI1sF1YRG
+            -----END CERTIFICATE-----
+            -----BEGIN CERTIFICATE-----
+            MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+            BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+            b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+            Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+            ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+            BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+            Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+            c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+            PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+            OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+            BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+            vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+            zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+            ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+            -----END CERTIFICATE-----
+        key:
+          pem: |
+            -----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIHVvXb1pwO778A6M6m49WQoVgNiWlS4FlDI24G6naH8poAoGCCqGSM49
+            AwEHoUQDQgAEbE7+nvSi8Lbtu8x60O6ASR2rZavRXPij2WYDvPgRUImLQCtU2i/Q
+            1qcndi8DdbITFKhsjif4fB3Fs/Fg3qEqxQ==
+            -----END EC PRIVATE KEY-----
 peers:
-  peer1-testorg-ns:
-    # this URL is used to send endorsement and query requests
-    url: grpcs://peer1-testorg-ns.example.com:443
-
-    # this URL is used to connect the EventHub and registering event listeners
-    eventUrl: grpcs://peer1-testorg-ns.example.com:443
-
-    grpcOptions:
+  peer1-org1:
+    eventurl: grpcs://peer1-org1.cal-dln.svc.cluster.local:7051
+    grpcoptions:
       allow-insecure: false
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-
-  peer2-testorg-ns:
-    # this URL is used to send endorsement and query requests
-    url: grpcs://peer2-testorg-ns.example.com:443
-
-    # this URL is used to connect the EventHub and registering event listeners
-    eventUrl: grpcs://peer2-testorg-ns.example.com:443
-
-    grpcOptions:
-      allow-insecure: false
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-
-  peer3-testorg-ns:
-    # this URL is used to send endorsement and query requests
-    url: grpcs://peer3-testorg-ns.example.com:443
-
-    # this URL is used to connect the EventHub and registering event listeners
-    eventUrl: grpcs://peer3-testorg-ns.example.com:443
-
-    grpcOptions:
-      allow-insecure: false
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-#
-# Fabric-CA is a special kind of Certificate Authority provided by Hyperledger Fabric which allows
-# certificate management to be done via REST APIs. Application may choose to use a standard
-# Certificate Authority instead of Fabric-CA, in which case this section would not be specified.
-#
-certificateAuthorities:
-  ica-testorg-ns:
-    # [Optional] Default: Infer from hostname
-    url: https://ica-testorg-ns.example.com
-
-    # [Optional] The optional server name for target override
-    grpcOptions:
-      ssl-target-name-override: ica-testorg-ns.example.com
-
-    tlsCACerts:
-      # Certificate location absolute path
-      path: testdata/example.crt
-
-    # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is
-    # needed to enroll and invoke new users.
-    registrar:
-      enrollId: admin-testorg
+      keep-alive-time: 5m
+    tlscacerts:
+      path: ""
+      pem: |
+        -----BEGIN CERTIFICATE-----
+        MIICijCCAjGgAwIBAgIBATAKBggqhkjOPQQDAjCBmjELMAkGA1UEBhMCVVMxCzAJ
+        BgNVBAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdv
+        b2QgQ2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChML
+        Q29yc2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBHJjYTAwHhcNMjEw
+        ODEzMDY0NjQzWhcNMzEwODEzMTY0NjQzWjCBmjELMAkGA1UEBhMCVVMxCzAJBgNV
+        BAgTAlZBMQ8wDQYDVQQHEwZWaWVubmExKTAnBgNVBAkTIDg2MTggV2VzdHdvb2Qg
+        Q2VudGVyIERyLCBTVEUgMzEwMQ4wDAYDVQQREwUyMjE4MjEUMBIGA1UEChMLQ29y
+        c2hhLCBJbmMxDTALBgNVBAsTBG9yZzExDTALBgNVBAMTBGljYTAwWTATBgcqhkjO
+        PQIBBggqhkjOPQMBBwNCAASgFAHQ5I98AxBuMtcHIgLgnwF9XbjFKKCKWf07argx
+        OQJ9yMliKv6E/3MdVZGSaosqiSRG7mrLMfb81ja8PeMpo2YwZDAOBgNVHQ8BAf8E
+        BAMCAgQwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUUDBs/AWEUJ0zsFWk
+        vDEA3vDOZGswHwYDVR0jBBgwFoAUO+UBUJ1a2qyeEKA1cB4XQE6Lwg8wCgYIKoZI
+        zj0EAwIDRwAwRAIgcClNC7BYdgK9Qu2zN+wBx+tFw9gMtztjJS0eWIdwIzcCIGbD
+        ER4SWXNYEG7UcA2XkZKn9x4MI3k5pAxLwFPNgRoW
+        -----END CERTIFICATE-----
+    url: grpcs://peer1-org1.cal-dln.svc.cluster.local:7051
+version: 1.0.0
+x-type: hlfv1

@@ -22,10 +22,10 @@ targetNamespace: staging
 uniqueId: default
 
 image:
-  repository: ""
-  tag: ""
+  repository: "us-central1-docker.pkg.dev/corsha-tf-gcp-dev-d9bef0/corsha-standard/simi-robot"
+  tag: "latest"
   consumer:
-    repository: ""
+    repository: "us-central1-docker.pkg.dev/corsha-tf-gcp-dev-d9bef0/corsha-standard/simi-consumer"
   waiter:
     repository: redhat/ubi8-minimal
     tag: "8.10"
@@ -90,9 +90,9 @@ influxdb:
         memory: 2Gi
   persistence:
     enabled: false
-    
 
-operationConfig: 
+
+operationConfig:
   org: org0
   chaincodeID: "mycc"
   logLevel: INFO
