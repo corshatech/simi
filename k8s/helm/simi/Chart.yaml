@@ -9,9 +9,9 @@ version: 0.1.0
 dependencies:
   - name: rabbitmq
     version: 11.2.2
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: "https://corsha.jfrog.io/artifactory/api/helm/corsha"
     condition: isBenchmark
   - name: influxdb
     version: 5.4.13
-    repository: "https://charts.bitnami.com/bitnami"
+    repository: "https://corsha.jfrog.io/artifactory/api/helm/corsha"
     condition: isBenchmark
