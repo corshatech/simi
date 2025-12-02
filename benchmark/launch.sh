@@ -133,7 +133,7 @@ fi
 
 mkdir -p "out/${name}"
 
-INFLUX_TOKEN=$(kubectl -n "$SIMI_NAMESPACE" get secrets influx-simi -o yaml | yq '.data["admin-user-token"]' | base64 -d)
+INFLUX_TOKEN=$(kubectl -n "$SIMI_NAMESPACE" get secrets influx-simi-auth -o yaml | yq '.data["admin-token"]' | base64 -d)
 
 curl --request POST \
   --retry 20 \
