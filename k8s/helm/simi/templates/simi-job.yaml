@@ -74,8 +74,8 @@ spec:
               - name: INFLUX_TOKEN
                 valueFrom:
                   secretKeyRef:
-                    name: {{ .Values.influxdb.fullnameOverride }}
-                    key: admin-user-token
+                    name: {{ .Values.influxdb.fullnameOverride }}-auth
+                    key: admin-token
             volumeMounts:
               - name: simi-config
                 mountPath: /simi.yaml
