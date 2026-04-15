@@ -108,6 +108,10 @@ The default `values.yaml` is a working example of the expected shape, but it con
 
 ## Example usage
 
+Before running `action=create-network`, update your values file with a chaincode image you control:
+
+- `k8s/helm/autoscaling/values.yaml` → `environment.CHAINCODE_IMAGE`
+
 Create the initial network:
 
 ```bash
@@ -140,6 +144,8 @@ In practice you will usually also provide a custom values file so the Fabric nam
 
 - This chart is **experimental and environment-specific**.
 - It assumes Bevel-operator-managed Fabric resources and the `kubectl hlf` plugin workflow.
+- You must provide your own chaincode image in `environment.CHAINCODE_IMAGE` before `create-network`; the default value in `values.yaml` is environment-specific.
+- The current scaling scripts are not fully org-agnostic yet. In particular, `files/peer-scale-down.sh` has an `Org1MSP` path hardcoded, so alternate org MSP names are not fully supported.
 - The jobs install tools dynamically, which may be too slow or too restricted for some production clusters.
 - The default scale signals are CPU-based Prometheus queries; they may not match your workload or SLOs.
 - The chart currently contains deployment details that are likely to require cleanup or replacement before broad public reuse.
