@@ -1,0 +1,88 @@
+{{- if eq .Values.action "scale" }}
+{{- range $name, $config := .Values.scaleJobs }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  pollingInterval: {{ $.Values.scaleJobDefaults.pollingInterval }}
+  maxReplicaCount: {{ $.Values.scaleJobDefaults.maxReplicaCount }}
+  successfulJobsHistoryLimit: 2
+
+  jobTargetRef:
+    parallelism: 1
+    completions: 1
+    backoffLimit: {{ $.Values.scaleJobDefaults.backoffLimit }}
+    template:
+      spec:
+        serviceAccountName: {{ $.Release.Namespace }}
+        restartPolicy: {{ $.Values.scaleJobDefaults.restartPolicy }}
+        containers:
+          - name: {{ $name }}-script
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+            env:
+              - name: NS
+                value: {{ $.Release.Namespace }}
+{{- range $key, $val := $.Values.environment }}
+              - name: {{ $key }}
+                value: {{ tpl $val $ | quote }}
+{{- end }}
+            command:
+              - /bin/sh
+              - -c
+              - |
+                #!/bin/bash
+                set -x
+
+                LOCK_NAME="{{ $config.lock }}"
+                NAMESPACE="{{ $.Release.Namespace }}"
+                K8S_API="https://kubernetes.default.svc"
+                TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                LOCK_ACQUIRED=false
+
+                apt update -y
+                apt install curl -y
+
+                acquire_lock() {
+                  echo "Attempting to acquire lease: $LOCK_NAME"
+                  curl --silent --fail -X POST \
+                    --cacert "$CACERT" \
+                    -H "Authorization: Bearer $TOKEN" \
+                    -H "Content-Type: application/json" \
+                    --data "{\"apiVersion\":\"coordination.k8s.io/v1\",\"kind\":\"Lease\",\"metadata\":{\"name\":\"$LOCK_NAME\",\"namespace\":\"$NAMESPACE\"}}" \
+                    "$K8S_API/apis/coordination.k8s.io/v1/namespaces/$NAMESPACE/leases" \
+                    && LOCK_ACQUIRED=true \
+                    || { echo "Lease already exists, exiting"; exit 0; }
+                }
+
+                release_lock() {
+                  if [ "$LOCK_ACQUIRED" = true ]; then
+                    echo "Releasing lease: $LOCK_NAME"
+                    curl --silent --fail -X DELETE \
+                      --cacert "$CACERT" \
+                      -H "Authorization: Bearer $TOKEN" \
+                      -H "Content-Type: application/json" \
+                      "$K8S_API/apis/coordination.k8s.io/v1/namespaces/$NAMESPACE/leases/$LOCK_NAME" \
+                      || echo "Lease already released or missing"
+                  fi
+                }
+
+                trap release_lock EXIT
+
+                echo "Attempting to acquire lease: $LOCK_NAME"
+                acquire_lock
+{{ $.Files.Get $config.script | indent 18 }}
+                sleep 30
+
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: "{{ $.Values.scaleJobDefaults.serverAddress }}"
+        query: {{ tpl $config.query $ }}
+        threshold: {{ $config.threshold | quote }}
+        unsafeSsl: "false"
+---
+{{- end }}
+{{- end }}

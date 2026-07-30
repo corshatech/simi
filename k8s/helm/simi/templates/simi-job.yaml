@@ -15,6 +15,7 @@ spec:
   {{- end }}
   completions: {{ .Values.numWorkers }}
   parallelism: {{ .Values.numWorkers }}
+  completionMode: Indexed
   template:
     metadata:
       labels:
@@ -33,8 +34,7 @@ spec:
             secret:
               secretName: simi-config
           - name: fabric-config
-            secret:
-              secretName: fabric-config
+            emptyDir: {}
         {{- if .Values.isBenchmark }}
         initContainers:
           - name: rabbitmq-waiter
@@ -50,9 +50,26 @@ spec:
               - /bin/sh
               - -c
               - |
-                kubectl -n {{ .Release.Namespace }} rollout status --watch --timeout=600s deployment/influx-simi
+                kubectl -n {{ .Release.Namespace }} rollout status --watch --timeout=600s statefulset/influx-simi
         {{- end }}
         containers:
+          - name: fabric-config-updater
+            image: "{{ .Values.kubectlImage }}"
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: fabric-config
+                mountPath: /fabric-config
+            command:
+              - /bin/sh
+            args:
+              - -c
+              - |
+                while [ ! -f /fabric-config/done ]; do
+                  echo "Updating Fabric config from secret ${CONFIG_SECRET}..."
+                  kubectl get secret dln-config -n {{ .Values.dlnNamespace }} -o jsonpath='{.data.config}' | base64 --decode > /fabric-config/fabric-config.yaml
+                  sleep 5
+                done
+                echo "Main container finished, exiting updater..."
           - name: simi
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
             imagePullPolicy: Always
@@ -81,9 +98,14 @@ spec:
                 mountPath: /simi.yaml
                 subPath: simi.yaml
               - name: fabric-config
-                mountPath: /fabric-config.yaml
-                subPath: fabric-config.yaml
+                mountPath: /fabric-config
             command: ["/bin/sh"]
-            args: ["-c", "./entrypoint.sh -mode={{ .Values.operationType}}"]
+            args:
+              - -c
+              - |
+                ./entrypoint.sh -numWriters={{ .Values.numWriters }} -dataSizeBytes={{ .Values.dataSizeBytes }}
+                rc=$?
+                touch /fabric-config/done
+                exit $rc
             resources:
 {{ toYaml .Values.resources.simi | indent 15 }}
