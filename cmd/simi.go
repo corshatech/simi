@@ -7,24 +7,44 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/opentracing/opentracing-go"
 	log "github.com/sirupsen/logrus"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 
 	"github.com/corshatech/simi/benchmark/worker"
+	"github.com/corshatech/simi/chaincodes"
 	"github.com/corshatech/simi/config"
-	"github.com/corshatech/simi/ping"
 )
 
 func main() {
-	if err := runSimi(); err != nil {
+	numWriters := flag.Int("numWriters", 0, "Number of writers")
+	dataSizeStr := flag.String("dataSizeBytes", "", "Size of the data to write")
+
+	flag.Parse()
+
+	log.Printf("Beginning experiment:")
+
+	id, err := strconv.Atoi(os.Getenv("JOB_COMPLETION_INDEX"))
+	if err != nil {
+		log.Fatalln("Failed to parse ID")
+	}
+
+	operationType := "write"
+	if id >= *numWriters {
+		operationType = "read"
+	}
+
+	if err := runSimi(operationType, *numWriters, *dataSizeStr); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func runSimi() error {
+func runSimi(operationType string, numWriters int, dataSizeStr string) error {
 	if !opentracing.IsGlobalTracerRegistered() {
 		log.Printf("global tracer was NOT initialized on simi boot. building new tracer")
 		cfg, jaegerErr := jaegercfg.FromEnv()
@@ -51,7 +71,16 @@ func runSimi() error {
 		return fmt.Errorf("error loading config: %w", err)
 	}
 
-	err := setupCustomSimi(&c)
+	c.OperationType = operationType
+
+	if dataSizeStr != "" {
+		if err := config.LoadByteSize(dataSizeStr, &c); err != nil {
+			return fmt.Errorf("error loading data size: %w", err)
+		}
+		log.Printf("Loaded DataSizeBytes %d", c.DataSizeBytes)
+	}
+
+	err := setupCustomChaincodes(numWriters, &c)
 	if err != nil {
 		return fmt.Errorf("error parsing custom Simi configuration: %w", err)
 	}
@@ -59,8 +88,23 @@ func runSimi() error {
 	return benchmarkOperation(c)
 }
 
-func setupCustomSimi(c *config.WorkerConfig) error {
-	return ping.SetupPingSimi(c)
+func setupCustomChaincodes(numWriters int, c *config.WorkerConfig) error {
+	err := chaincodes.SetupSimi(c, numWriters)
+	if err != nil {
+		return err
+	}
+
+	err = chaincodes.SetupReadOp(c)
+	if err != nil {
+		return err
+	}
+
+	err = chaincodes.SetupWriteOp(c)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func benchmarkOperation(c config.WorkerConfig) error {

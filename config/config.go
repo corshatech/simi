@@ -44,12 +44,16 @@ type ShutdownWorker func(OperationConfig)
 
 // WorkerConfig encapsulates the abstracted configuration needed for a benchmarking worker
 type WorkerConfig struct {
-	// ChaincodeOp performs the chaincode operation this worker is benchmarking
-	ChaincodeOp ChaincodeOperation
+	// WriteOp performs the write chaincode operation this worker is benchmarking
+	WriteOp ChaincodeOperation
+	// ReadOp performs the read chaincode operation this worker is benchmarking
+	ReadOp ChaincodeOperation
 	// InitFunc initializes the worker
 	InitFunc InitializeWorker
 	// ShutdownFunc shuts down the worker
 	ShutdownFunc ShutdownWorker
+	// DataSizeBytes is the size of the data payload in bytes
+	DataSizeBytes int
 	// OperationConfig is the custom configuration needed for the worker to perform Chaincode Op
 	OperationConfig OperationConfig `yaml:"operationConfig"`
 	// BenchConfig is the benchmarking specific configuration
