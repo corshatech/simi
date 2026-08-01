@@ -1,6 +1,6 @@
 set -e
 
-apt update && apt upgrade
+apt update && apt upgrade -y
 apt install -y curl tar gzip git yq
 apt install -y kubectl
 
