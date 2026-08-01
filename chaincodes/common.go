@@ -36,6 +36,8 @@ const (
 // definitions within the organization's configuration section and selects the first available
 // user for authentication purposes. The selected user must have valid certificates and
 // permissions to perform chaincode operations on behalf of the organization.
+//
+//nolint:unused
 func sdkUser(sdk *fabsdk.FabricSDK, org string) (string, error) {
 	conf, err := sdk.Config()
 	if err != nil {
@@ -80,7 +82,7 @@ func sdkUser(sdk *fabsdk.FabricSDK, org string) (string, error) {
 type CCWorker struct {
 	ChaincodeID string            `yaml:"chaincodeID"` // Identifier of the deployed chaincode to invoke
 	Sdk         *fabsdk.FabricSDK // Fabric SDK instance for network communication
-	chClient    *channel.Client   // client for communicating to chaincodes
+	chClient    *channel.Client   //nolint:unused // client for communicating to chaincodes
 	Username    string            `yaml:"username"` // Username for authentication with the Fabric network
 	Org         string            `yaml:"org"`      // Organization name this worker belongs to
 	LogLevel    string            `yaml:"logLevel"` // Logging level for debugging and monitoring

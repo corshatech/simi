@@ -51,14 +51,14 @@ func NewWorker(conf config.WorkerConfig) (*Worker, error) {
 	var err error
 	baseDelay := time.Second
 
-	for i := 1; i < 10; i++ {
-		conn, err = amqp.Dial(conf.BenchConfig.ResultSink.BrokerURL)
+	for i := uint(1); i < 10; i++ {
+		conn, err = amqp.Dial(conf.ResultSink.BrokerURL)
 		if err == nil {
 			break
 		}
 
-		backoff := baseDelay * time.Duration(1<<uint(i-1))
-		jitter := time.Duration(rand.Int63n(int64(backoff / 2)))
+		backoff := baseDelay * time.Duration(1<<(i-1))
+		jitter := time.Duration(rand.Int63n(int64(backoff / 2))) //nolint:gosec // weak random number generator is okay for jitter
 
 		sleep := backoff/2 + jitter
 		log.WithError(err).
@@ -68,7 +68,7 @@ func NewWorker(conf config.WorkerConfig) (*Worker, error) {
 		time.Sleep(sleep)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial AMQP broker at %q after retries: %w", conf.BenchConfig.ResultSink.BrokerURL, err)
+		return nil, fmt.Errorf("failed to dial AMQP broker at %q after retries: %w", conf.ResultSink.BrokerURL, err)
 	}
 
 	influxTok, found := os.LookupEnv(influxTokEnv)
@@ -76,9 +76,9 @@ func NewWorker(conf config.WorkerConfig) (*Worker, error) {
 		return nil, errors.New("could not find required variable: " + influxTokEnv)
 	}
 
-	influxClient := influxdb2.NewClient(conf.BenchConfig.InfluxConfig.Url, influxTok)
+	influxClient := influxdb2.NewClient(conf.Url, influxTok)
 	// Get non-blocking write client
-	writeAPI := influxClient.WriteAPI("simi", conf.BenchConfig.InfluxConfig.Bucket)
+	writeAPI := influxClient.WriteAPI("simi", conf.Bucket)
 
 	// handle async write errors
 	errorsCh := writeAPI.Errors()
@@ -231,8 +231,7 @@ func (w *Worker) BenchOperation() error {
 
 	// Sleep a random time between 0 and the OperationPeriod to spread distribute the client requests
 	// and reduce load on the DLN
-	rand.Seed(time.Now().UnixNano())
-	randDuration := time.Duration(rand.Int63n(int64(w.config.OperationPeriod)))
+	randDuration := time.Duration(rand.Int63n(int64(w.config.OperationPeriod))) //nolint:gosec // weak random number generator is okay for timing
 	time.Sleep(randDuration)
 
 	result := &benchmark.Result{
@@ -241,7 +240,7 @@ func (w *Worker) BenchOperation() error {
 	workerStart := time.Now()
 	result.Start = workerStart.UnixNano()
 
-	operationName := w.config.BenchConfig.OperationType
+	operationName := w.config.OperationType
 	readFunc := func() error {
 		span, ctx := opentracing.StartSpanFromContext(context.Background(), operationName)
 		if span == nil {
