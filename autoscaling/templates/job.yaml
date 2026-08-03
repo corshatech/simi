@@ -1,0 +1,33 @@
+{{- range $name, $config := .Values.scaleJobs }}
+  {{- if eq $.Values.action $name }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-{{ randAlphaNum 4 | lower }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  backoffLimit: {{ $.Values.scaleJobDefaults.backoffLimit }}
+  template:
+    spec:
+      serviceAccountName: {{ $.Release.Namespace }}
+      restartPolicy: {{ $.Values.scaleJobDefaults.restartPolicy }}
+      containers:
+        - name: {{ $name }}-script
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          env:
+            - name: NS
+              value: {{ $.Release.Namespace }}
+{{- range $key, $val := $.Values.environment }}
+            - name: {{ $key }}
+              value: {{ tpl $val $ | quote }}
+{{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              #!/bin/bash
+              set -x
+{{ $.Files.Get $config.script | indent 14 }}
+---
+  {{- end }}
+{{- end }}

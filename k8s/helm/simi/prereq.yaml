@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: simi-fabric-reader
+rules:
+- apiGroups:
+  - "hlf.kungfusoftware.es"
+  resources:
+  - "fabriccas"
+  - "fabricpeers"
+  - "fabricorderernodes"
+  - "fabricmainchannels"
+  - "fabricfollowerchannels"
+  verbs:
+  - "get"
+  - "list"
+  - "watch"
+- apiGroups:
+  - ""
+  resources:
+  - "secrets"
+  verbs:
+  - "get"
+  - "list"

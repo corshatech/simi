@@ -42,3 +42,16 @@ roleRef:
   kind: Role
   name: simi-role
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: simi-bind-fabric-reader-{{ .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: simi
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: simi-fabric-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,89 @@
+image:
+  repository: debian
+  tag: "stable-slim"
+
+scaleJobDefaults:
+  pollingInterval: 10
+  maxReplicaCount: 1
+  backoffLimit: 0
+  restartPolicy: Never
+  serverAddress: "http://kube-prom-prometheus.monitoring.svc.cluster.local:9090"
+
+scaleJobs:
+  peers-scale-up:
+    lock: "peers.lock"
+    query: 'sum(rate(container_cpu_usage_seconds_total{image!="",namespace="{{ .Release.Namespace }}",container="peer"}[1m])) / sum(kube_pod_container_resource_limits{namespace="{{ .Release.Namespace }}",container="peer",resource="cpu"}) >= bool 0.8'
+    threshold: "1"
+    script: "files/peer-scale-up.sh"
+
+  peers-scale-down:
+    lock: "peers.lock"
+    query: '(1 - sum(rate(container_cpu_usage_seconds_total{image!="",namespace="{{ .Release.Namespace }}",container="peer"}[1m])) / sum(kube_pod_container_resource_limits{namespace="{{ .Release.Namespace }}",container="peer",resource="cpu"})) * clamp_max(count(kube_pod_info{namespace="{{ .Release.Namespace }}",created_by_kind="ReplicaSet",created_by_name=~"peer.*"}) - 1, 1) >= 0.8'
+    threshold: "0.8"
+    script: "files/peer-scale-down.sh"
+
+lockVolume:
+  size: 1Gi
+  storageClass: "standard"
+
+environment:
+  PREFERRED_MAX_BYTES: "2000"
+  CHAINCODE_IMAGE: "corsha/fabric-chaincode:latest"
+  # Shared
+  ORGL: "org1"
+  ORGU: "Org1"
+  UENROLL: "enroll"
+  UENROLLPWD: "enrollpwd"
+  UADMIN: "admin"
+  UADMINPWD: "adminpw"
+  CA_VERSION: "1.5.15"
+  SC_NAME: "standard-rwo"
+  CA_LISTENING_PORT: "7054"
+  CA_IMAGE: "hyperledger/fabric-ca"
+  ORG_DOMAIN: "{{ .Release.Namespace }}.svc.cluster.local"
+  ORDERERMSP_TLS_FILE: "orderermsp-tls.yaml"
+  ORDERERMSP_FILE: "orderermsp.yaml"
+  ORDERERMSP_TLS_SIGN_FILE: "orderermspsign.yaml"
+  ORGMSP_FILE: "{{ .Values.environment.ORGL }}msp.yaml"
+  ORGMSP_TLS_FILE: "{{ .Values.environment.ORGL }}msp-tlsca.yaml"
+  ORDERER_TLS_PORT: "7050"
+  CHANNEL_JOIN_PORT: "7053"
+  ISTIO_INGRESS_PORT: "443"
+  PEER_JOIN_PORT: "7051"
+  ORG_INSPECT_FILE: "{{ .Values.environment.ORGL }}.yaml"
+  PEER_CHAINCODE_ENROLL_FILE: "peer-{{ .Values.environment.ORGL }}.yaml"
+  CHAINCODE_SEQUENCE: "1"
+  CHAINCODE_APPROVAL_VERSION: "1.0"
+
+  # Peer
+  ORG_CA: "{{ .Values.environment.ORGL }}-ca"
+  ORGMSP: "{{ .Values.environment.ORGU }}MSP"
+  UPEER: "peer"
+  UPEERPWD: "peerpw"
+  PEER_VERSION: "3.1.0"
+  PEER_INITIAL: "peer0-{{ .Values.environment.ORGL }}"
+  ORGMSP_ID_CR: "{{ .Values.environment.ORGL }}-admin"
+  PEER_IMAGE: "hyperledger/fabric-peer"
+
+  # Orderer
+  UORDERER: "orderer"
+  UORDERERPWD: "ordererpwd"
+  ORDERER_VERSION: "3.1.0"
+  ORDERER_MSP: "Orderer{{ .Values.environment.ORGU }}MSP"
+  ORDERER_CA: "orderer-{{ .Values.environment.ORGL }}-ca"
+  ORDERER_INITIAL: "orderer0-{{ .Values.environment.ORGL }}-node"
+  ORDERER_IMAGE: "hyperledger/fabric-orderer"
+
+  # Channel
+  CHANNEL: "firstchannel"
+
+  # Chaincode
+  CHAINCODE_NAME: "mycc"
+  CHAINCODE_LABEL: "mycc"
+
+  PEER_PVC_SIZE: "20Gi"
+  PEER_CPU: "0.25"
+  PEER_RAM: "256Mi"
+
+
+action: create-network   # or "scale"

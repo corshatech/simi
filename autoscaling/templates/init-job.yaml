@@ -1,0 +1,29 @@
+{{- if eq .Values.action "create-network" }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-network
+  namespace: {{ .Release.Namespace }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Release.Namespace }}
+      restartPolicy: Never
+      containers:
+        - name: hlf-job
+          image: debian:stable-slim
+          command:
+            - /bin/sh
+            - -c
+            - |
+{{ $.Files.Get "files/create-dln.sh" | indent 14 }}
+          env:
+            - name: NS
+              value: {{ .Release.Namespace }}
+{{- range $key, $val := .Values.environment }}
+            - name: {{ $key }}
+              value: {{ tpl $val $ | quote }}
+{{- end }}
+{{- end }}
